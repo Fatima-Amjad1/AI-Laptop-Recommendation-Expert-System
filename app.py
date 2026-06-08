@@ -1,17 +1,9 @@
-import streamlit as st
+import gradio as gr
 import pandas as pd
-import time
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import LabelEncoder
 
-# --- 1. SET UP THE WEB PAGE ---
-st.set_page_config(page_title="AI Laptop Advisor", page_icon="💻", layout="centered")
-st.title("🤖 AI Laptop Advisor v1.0")
-st.write("Find the perfect laptop optimized for your specific budget and needs.")
-
-# --- 2. LOAD AND CLEAN DATA ---
-# CRITICAL: Make sure 'laptop.csv' is uploaded to your GitHub repository!
-@st.cache_data
+# --- 1. LOAD AND CLEAN DATA ---
 def load_and_prep_data():
     data = pd.read_csv("laptop.csv")
     
@@ -41,13 +33,9 @@ def load_and_prep_data():
     
     return data
 
-try:
-    data = load_and_prep_data()
-except FileNotFoundError:
-    st.error("❌ 'laptop.csv' not found. Please upload it to your GitHub repository!")
-    st.stop()
+# Initialize and train model globally when app starts
+data = load_and_prep_data()
 
-# --- 3. ENCODE AND TRAIN THE MODEL ---
 le_budget = LabelEncoder()
 le_usage = LabelEncoder()
 le_model = LabelEncoder()
@@ -68,22 +56,10 @@ y = data[['Model_num', 'Ram_num', 'SSD_num', 'Graphics_num']]
 model = DecisionTreeClassifier()
 model.fit(X, y)
 
-# --- 4. USER INTERFACE (SIDEBAR / DROPDOWNS) ---
-st.markdown("---")
-col1, col2 = st.columns(2)
-
-with col1:
-    budget_in = st.selectbox("💰 Select Your Budget:", ["Low", "Medium", "High"])
-
-with col2:
-    usage_in = st.selectbox("🎮 Select Your Primary Usage:", ["Study", "Programming", "Gaming"])
-
-# --- 5. PREDICTION AND DISPLAY LOGIC ---
-if st.button("🔎 Scan Database for Best Match", type="primary", use_container_width=True):
-    with st.spinner("Analyzing performance configurations..."):
-        time.sleep(1) # Replicates your scanning animation delay
-        
-        # Process input
+# --- 2. PREDICTION FUNCTION FOR GRADIO ---
+def predict_laptop(budget_in, usage_in):
+    try:
+        # Process inputs
         b_num = le_budget.transform([budget_in])[0]
         u_num = le_usage.transform([usage_in])[0]
         
@@ -97,15 +73,38 @@ if st.button("🔎 Scan Database for Best Match", type="primary", use_container_
         final_ssd   = le_ssd.inverse_transform([int(prediction[0][2])])[0]
         final_gpu   = le_gpu.inverse_transform([int(prediction[0][3])])[0]
         
-    # Beautiful Web App Display Container
-    st.balloons()
-    st.success("✅ MATCH FOUND!")
+        # Format a gorgeous presentation layout for the web screen
+        result_html = f"""
+        <div style="background-color: #fff0f5; padding: 20px; border-radius: 10px; border: 2px solid #ffb6c1;">
+            <h3 style="color: #d15c7a; margin-top: 0;">🏆 Recommended Match: {final_model}</h3>
+            <hr style="border: 0; height: 1px; background: #ffb6c1; margin: 10px 0;">
+            <p style="font-size: 16px; margin: 5px 0;">🧠 <b>RAM:</b> {final_ram}</p>
+            <p style="font-size: 16px; margin: 5px 0;">💾 <b>Storage:</b> {final_ssd}</p>
+            <p style="font-size: 16px; margin: 5px 0;">🖥️ <b>Graphics:</b> {final_gpu}</p>
+            <p style="font-size: 13px; color: #777; margin-top: 15px; font-style: italic;">
+                Configuration optimized for {usage_in} tasks within a {budget_in} budget profile.
+            </p>
+        </div>
+        """
+        return result_html
+    except Exception as e:
+        return f"<p style='color:red;'>Error processing request: {str(e)}</p>"
+
+# --- 3. GRADIO INTERFACE LAYOUT ---
+with gr.Blocks(theme=gr.themes.Soft(primary_hue="pink", secondary_hue="pink")) as demo:
+    gr.Markdown("# 🤖 AI Laptop Advisor v1.0")
+    gr.Markdown("Find the perfect laptop optimized for your specific budget and workload requirements.")
     
-    with st.container(border=True):
-        st.subheader(f"🏆 {final_model}")
-        st.markdown("---")
-        st.markdown(f"🧠 **RAM:** {final_ram}")
-        st.markdown(f"💾 **Storage:** {final_ssd}")
-        st.markdown(f"🖥️ **Graphics:** {final_gpu}")
+    with gr.Row():
+        budget_input = gr.Dropdown(choices=["Low", "Medium", "High"], label="💰 Select Your Budget", value="Medium")
+        usage_input = gr.Dropdown(choices=["Study", "Programming", "Gaming"], label="🎮 Select Your Primary Usage", value="Study")
         
-    st.caption(f"Configuration optimized natively for {usage_in} tasks within a {budget_in} budget profile.")
+    submit_btn = gr.Button("🔎 Scan Database for Best Match", variant="primary")
+    
+    output_html = gr.HTML(label="Match Result")
+    
+    # Link button to function
+    submit_btn.click(fn=predict_laptop, inputs=[budget_input, usage_input], outputs=output_html)
+
+# Launch the app
+demo.launch()
