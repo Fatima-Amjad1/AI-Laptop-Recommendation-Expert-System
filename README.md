@@ -1,9 +1,9 @@
-# AI Laptop Expert System 💻
+# AI Laptop Expert System 
 
-### 🔎 The Problem
+###  The Problem
 I noticed that many students struggle to choose the right laptop. With so many technical specs (*RAM, GPU, SSD*), it’s easy to either overspend or buy a machine that can’t handle their workload. I wanted to build a tool that makes these decisions easier.
 
-### 💡 The Solution
+### The Solution
 **This is an AI-driven Expert System that acts as a tech consultant.**
 
 * **Input:** The user selects their Budget and intended Usage from an intuitive web interface.
@@ -12,19 +12,19 @@ I noticed that many students struggle to choose the right laptop. With so many t
 
 ---
 
-### 🛠️ Key Technical Features
+### Key Technical Features
 * **Data Cleaning:** Handled messy currency strings, removed special characters, and dynamically categorized raw prices into numerical Budget tiers using Pandas.
 * **Label Encoding:** Applied multi-variable Label Encoding to convert all categorical text data into numerical inputs natively understood by the machine learning algorithm.
 * **Multi-Output Prediction:** Engineered the system using Scikit-Learn's multi-output classification capabilities to predict four distinct hardware features simultaneously from a single input array.
 
 ---
 
-### 🧠 Model Architecture
+### Model Architecture
 The project leverages **Supervised Machine Learning**. The underlying pipeline processes a curated laptop dataset, encodes high-cardinality string features into discrete mathematical values, and maps them through a **Decision Tree Classifier** optimized to split nodes based on standard information gain metrics (Gini Impurity). 
 
 ---
 
-### 🚀 Tech Stack & Deployment
+### Tech Stack & Deployment
 * **Core Language:** Python
 * **Data & ML Libraries:** Scikit-Learn, Pandas
 * **Web UI Framework:** Streamlit
@@ -32,7 +32,7 @@ The project leverages **Supervised Machine Learning**. The underlying pipeline p
 
 ---
 
-### ⚙️ How It Runs on the Web
+### How It Runs on the Web
 This repository is configured to deploy directly to the cloud. The platform automatically scans `requirements.txt` to spin up a standalone environment, executes `app.py` via an active Python process, and serves the app over HTTPS.
 
 #### Local Development:
